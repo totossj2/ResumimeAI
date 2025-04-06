@@ -1,0 +1,35 @@
+{
+    "manifest_version": 3,
+    "name": "selection-to-clipboard",
+    "description": "Copia automáticamente el texto seleccionado al portapapeles",
+    "version": "1.1",
+    "icons": {
+        "48": "icons/clipboard-48.png"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": "icons/clipboard-48.png"
+    },
+    "permissions": [
+        "scripting",
+        "clipboardWrite",
+        "storage",
+        "activeTab"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content-script.js"
+            ]
+        }
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ]
+}
