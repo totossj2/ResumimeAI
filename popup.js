@@ -1,22 +1,3 @@
-// Guardar y cambiar el estado en el storage
-document.getElementById("toggle").addEventListener("click", async () => {
-    const { autoCopy } = await chrome.storage.local.get("autoCopy");
-    const newState = !autoCopy;
-
-    await chrome.storage.local.set({ autoCopy: newState });
-
-    document.getElementById("toggle").textContent = newState
-        ? "Desactivar copia automática"
-        : "Activar copia automática";
-});
-
-// Mostrar estado actual cuando se abre el popup
-chrome.storage.local.get("autoCopy", ({ autoCopy }) => {
-    document.getElementById("toggle").textContent = autoCopy
-        ? "Desactivar copia automática"
-        : "Activar copia automática";
-});
-
 // Guardar la API key ingresada por el usuario
 document.getElementById("save-api-key").addEventListener("click", async () => {
     const apiKeyInput = document.getElementById("api-key-input").value.trim();
@@ -39,13 +20,67 @@ function addMessage(text, isUser) {
     messageElement.classList.add("message");
     messageElement.classList.add(isUser ? "user-message" : "ai-message");
     messageElement.textContent = text;
+
+    if (!isUser) {
+        const copyButton = document.createElement("button");
+        copyButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-copy">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z" />
+                <path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" />
+            </svg>
+            Copiar`;
+        copyButton.classList.add("copy-button");
+        copyButton.addEventListener("click", () => copyToClipboard(text));
+        messageElement.appendChild(copyButton);
+    }
+
     chatContainer.appendChild(messageElement);
     chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// Function to copy text to clipboard
+async function copyToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        console.log('Texto copiado al portapapeles');
+    } catch (err) {
+        console.error('Error al copiar al portapapeles: ', err);
+    }
 }
 
 // Function to display AI response in the chat
 function displayAIResponse(message) {
     addMessage(message, false);
+    saveMessage(message, false); // Save the summary as an AI message
+}
+
+// Function to save messages to Chrome storage
+async function saveMessage(text, isUser) {
+    const { messages } = await chrome.storage.local.get({ messages: [] });
+    messages.push({ text, isUser });
+    await chrome.storage.local.set({ messages });
+}
+
+// Function to load messages from Chrome storage
+async function loadMessages() {
+    const { messages } = await chrome.storage.local.get({ messages: [] });
+    if (messages.length === 0) {
+        addMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false);
+        saveMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false);
+    } else {
+        messages.forEach(message => {
+            addMessage(message.text, message.isUser); // Display each message
+        });
+    }
+}
+
+// Function to clear chat history
+async function clearChatHistory() {
+    await chrome.storage.local.set({ messages: [] });
+    chatContainer.innerHTML = ''; // Clear the chat container
+    addMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false); // Add the initial message
+    saveMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false); // Add the initial message
 }
 
 // Handle sending messages
@@ -71,6 +106,7 @@ async function sendMessage() {
 
             // Display user message (selected text)
             addMessage(selectedText, true);
+            saveMessage(selectedText, true); // Save the user message
 
             // Send the selected text to the background script for summarization
             chrome.runtime.sendMessage(
@@ -92,5 +128,26 @@ async function sendMessage() {
 // Event listeners
 sendButton.addEventListener("click", sendMessage);
 
-// Add a welcome message when the popup opens
-addMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false);
+// Zoom functionality
+let isZoomed = false;
+const defaultWidth = "350px";
+const defaultHeight = "500px";
+const zoomedWidth = "700px";
+const zoomedHeight = "1000px";
+
+const zoomInDefault = document.getElementById("zoom-in-default");
+const zoomInMaximized = document.getElementById("zoom-in-maximized");
+
+document.getElementById("zoom-in").addEventListener("click", () => {
+    isZoomed = !isZoomed;
+    document.body.style.width = isZoomed ? zoomedWidth : defaultWidth;
+    document.body.style.height = isZoomed ? zoomedHeight : defaultHeight;
+
+    zoomInDefault.style.display = isZoomed ? "none" : "inline";
+    zoomInMaximized.style.display = isZoomed ? "inline" : "none";
+});
+
+// New chat functionality
+document.getElementById("new-chat").addEventListener("click", clearChatHistory);
+
+loadMessages(); // Load messages when the popup opens

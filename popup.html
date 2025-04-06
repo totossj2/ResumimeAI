@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
     <style>
         body {
             font-family: sans-serif;
@@ -19,6 +20,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 5px;
+            /* Space between buttons */
         }
 
         .chat-container {
@@ -50,6 +57,13 @@
             border-top: 1px solid #e0e0e0;
             display: flex;
             background-color: #ffffff;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+
         }
 
         #message-input {
@@ -76,29 +90,73 @@
             border: 1px solid #ccc;
             border-radius: 3px;
         }
+
+        .copy-button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
     </style>
 </head>
 
 <body>
     <div class="header">
         <h3 style="margin: 0;">ResumimeAI</h3>
-        <button id="toggle">Activar copia automática</button>
+        <div class="header-buttons">
+            <button id="new-chat">Nuevo Chat</button>
+            <button id="zoom-in">
+                <svg id="zoom-in-default" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="icon icon-tabler icons-tabler-outline icon-tabler-arrows-maximize">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M16 4l4 0l0 4" />
+                    <path d="M14 10l6 -6" />
+                    <path d="M8 20l-4 0l0 -4" />
+                    <path d="M4 20l6 -6" />
+                    <path d="M16 20l4 0l0 -4" />
+                    <path d="M14 14l6 6" />
+                    <path d="M8 4l-4 0l0 4" />
+                    <path d="M4 4l6 6" />
+                </svg>
+
+                <svg id="zoom-in-maximized" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="24"
+                    height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    class="icon icon-tabler icons-tabler-outline icon-tabler-minimize">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M15 19v-2a2 2 0 0 1 2 -2h2" />
+                    <path d="M15 5v2a2 2 0 0 0 2 2h2" />
+                    <path d="M5 15h2a2 2 0 0 1 2 2v2" />
+                    <path d="M5 9h2a2 2 0 0 0 2 -2v-2" />
+                </svg>
+            </button>
+        </div>
     </div>
 
-    <div class="chat-container" id="chat-container">
-        <!-- Messages will be displayed here -->
+    <div>
+        <div class="chat-container" id="chat-container">
+            <!-- Messages will be displayed here -->
+        </div>
+
+        <div style="padding: 10px; border-top: 1px solid #e0e0e0;">
+            <label for="api-key-input">Configurar API Key:</label>
+            <input type="password" id="api-key-input" placeholder="Ingresa tu API key"
+                style="width: 100%; margin-top: 5px; padding: 5px;">
+            <button id="save-api-key" style="margin-top: 5px; padding: 5px 10px;">Guardar</button>
+        </div>
     </div>
+
+
 
     <div class="input-area">
         <button id="send-button">Enviar</button>
     </div>
 
-    <div style="padding: 10px; border-top: 1px solid #e0e0e0;">
-        <label for="api-key-input">Configurar API Key:</label>
-        <input type="password" id="api-key-input" placeholder="Ingresa tu API key"
-            style="width: 100%; margin-top: 5px; padding: 5px;">
-        <button id="save-api-key" style="margin-top: 5px; padding: 5px 10px;">Guardar</button>
-    </div>
+
 
     <script src="popup.js"></script>
 </body>

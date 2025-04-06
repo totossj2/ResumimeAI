@@ -16,11 +16,11 @@ async function callOpenAI(promptText) {
         body: JSON.stringify({
             model: 'gpt-3.5-turbo',
             messages: [
-                { role: 'system', content: 'Resumí el siguiente texto:' },
+                { role: 'system', content: 'Sos un experto en comprensión de textos y tu tarea es **resumir de forma clara, concisa y fiel** el siguiente contenido. Mantené las ideas más importantes, evitá detalles menores, y expresalo en un lenguaje sencillo pero profesional. El resumen debe ser fácil de leer, como si se lo explicaras a alguien con poco tiempo. No agregues opinión ni interpretación personal.' },
                 { role: 'user', content: promptText }
             ],
-            max_tokens: 150,
-            temperature: 0.5
+            max_tokens: 300,
+            temperature: 0.2
         })
     });
 
