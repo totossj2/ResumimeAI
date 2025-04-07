@@ -15,13 +15,13 @@ const chatContainer = document.getElementById("chat-container");
 const sendButton = document.getElementById("send-button");
 
 // Function to add a message to the chat
-function addMessage(text, isUser) {
+function addMessage(text, isUser, isInitial = false) {
     const messageElement = document.createElement("div");
     messageElement.classList.add("message");
     messageElement.classList.add(isUser ? "user-message" : "ai-message");
     messageElement.textContent = text;
 
-    if (!isUser) {
+    if (!isUser && !isInitial) {
         const copyButton = document.createElement("button");
         copyButton.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-copy">
@@ -56,9 +56,9 @@ function displayAIResponse(message) {
 }
 
 // Function to save messages to Chrome storage
-async function saveMessage(text, isUser) {
+async function saveMessage(text, isUser, isInitial = false) {
     const { messages } = await chrome.storage.local.get({ messages: [] });
-    messages.push({ text, isUser });
+    messages.push({ text, isUser, isInitial });
     await chrome.storage.local.set({ messages });
 }
 
@@ -66,11 +66,11 @@ async function saveMessage(text, isUser) {
 async function loadMessages() {
     const { messages } = await chrome.storage.local.get({ messages: [] });
     if (messages.length === 0) {
-        addMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false);
-        saveMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false);
+        addMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false, true);
+        saveMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false, true);
     } else {
         messages.forEach(message => {
-            addMessage(message.text, message.isUser); // Display each message
+            addMessage(message.text, message.isUser, message.isInitial); // Display each message
         });
     }
 }
@@ -79,8 +79,8 @@ async function loadMessages() {
 async function clearChatHistory() {
     await chrome.storage.local.set({ messages: [] });
     chatContainer.innerHTML = ''; // Clear the chat container
-    addMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false); // Add the initial message
-    saveMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false); // Add the initial message
+    addMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false, true); // Add the initial message
+    saveMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false, true); // Add the initial message
 }
 
 // Handle sending messages
