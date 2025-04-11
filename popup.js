@@ -83,30 +83,15 @@ async function clearChatHistory() {
     saveMessage("¡Hola! Soy ResumimeAI. ¿En qué puedo ayudarte hoy?", false, true); // Add the initial message
 }
 
-// Handle sending messages
-async function sendMessage() {
-    // Get the active tab
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-    // Execute script to get selected text
-    chrome.scripting.executeScript(
-        {
-            target: { tabId: tab.id },
-            function: () => {
-                return window.getSelection().toString().trim();
-            },
-        },
-        (injectionResults) => {
-            const selectedText = injectionResults[0].result;
-
-            if (!selectedText) {
-                displayAIResponse("No text selected.");
-                return;
-            }
+// Handle messages from background script
+chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+        if (request.type === "SUMMARY_REQUEST") {
+            const selectedText = request.text;
 
             // Display user message (selected text)
             addMessage(selectedText, true);
-            saveMessage(selectedText, true); // Save the user message
+            saveMessage(selectedText, true);
 
             // Send the selected text to the background script for summarization
             chrome.runtime.sendMessage(
@@ -122,7 +107,47 @@ async function sendMessage() {
                 }
             );
         }
-    );
+    }
+);
+
+// Handle sending messages
+async function sendMessage() {
+    // Get the active tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    // Send message to content script to get selected text
+    chrome.tabs.sendMessage(tab.id, { type: "GET_SELECTED_TEXT" }, (response) => {
+        if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError.message);
+            displayAIResponse("Error: Could not connect to the page. Try reloading the page.");
+            return;
+        }
+
+        let selectedText = response?.text || "";
+
+        if (!selectedText) {
+            displayAIResponse("No text selected.");
+            return;
+        }
+
+        // Display user message (selected text)
+        addMessage(selectedText, true);
+        saveMessage(selectedText, true); // Save the user message
+
+        // Send the selected text to the background script for summarization
+        chrome.runtime.sendMessage(
+            { type: "SUMMARY_REQUEST", text: selectedText },
+            (response) => {
+                if (response?.summary) {
+                    // Display the summary
+                    displayAIResponse(response.summary);
+                } else {
+                    console.error("Error al resumir:", response?.error);
+                    displayAIResponse("Error al resumir.");
+                }
+            }
+        );
+    });
 }
 
 // Event listeners

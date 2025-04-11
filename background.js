@@ -35,6 +35,45 @@ async function callOpenAI(promptText) {
     return data.choices[0].message.content;
 }
 
+// Crear un item en el menu contextual
+chrome.contextMenus.create({
+    id: "summarizeSelection",
+    title: "Summarize with ResumimeAI",
+    contexts: ["selection"]
+});
+
+// Listener para el menu contextual
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "summarizeSelection") {
+        const selectedText = info.selectionText;
+        chrome.action.openPopup().then(() => {
+            chrome.runtime.sendMessage({ type: "SUMMARY_REQUEST", text: selectedText });
+        });
+    }
+});
+
+// Listener para el command (shortcut)
+chrome.commands.onCommand.addListener((command, tab) => {
+    if (command === "summarizeSelection") {
+        // Execute script to get selected text
+        chrome.scripting.executeScript(
+            {
+                target: { tabId: tab.id },
+                function: () => {
+                    return window.getSelection().toString().trim();
+                },
+            },
+            (injectionResults) => {
+                const selectedText = injectionResults[0].result;
+
+                if (selectedText) {
+                    chrome.runtime.sendMessage({ type: "SUMMARY_REQUEST", text: selectedText });
+                }
+            }
+        );
+    }
+});
+
 // Escuchar mensajes desde el content-script o popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'SUMMARY_REQUEST') {

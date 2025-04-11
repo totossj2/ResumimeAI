@@ -17,7 +17,8 @@
         "scripting",
         "clipboardWrite",
         "storage",
-        "activeTab"
+        "activeTab",
+        "contextMenus"
     ],
     "content_scripts": [
         {
@@ -31,5 +32,17 @@
     ],
     "host_permissions": [
         "<all_urls>"
-    ]
+    ],
+    "commands": {
+        "summarizeSelection": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+Z",
+                "windows": "Ctrl+Shift+Z",
+                "mac": "Command+Shift+Z",
+                "chromeos": "Ctrl+Shift+Z",
+                "linux": "Ctrl+Shift+Z"
+            },
+            "description": "Summarize selected text"
+        }
+    }
 }
